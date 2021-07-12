@@ -35,10 +35,18 @@ module LicenseFinder
         end
       end
 
+      valid_packages = []
+
+      (packages + incompatible_packages.uniq).each do |package|
+        next unless toplevel_dependencies.include?(package.name)
+
+        valid_packages << package
+      end
+
       toplevel_packages = []
 
       Dir.chdir(project_path) do
-        (packages + incompatible_packages.uniq).each do |package|
+        valid_packages.each do |package|
           version, _stderr, _status = filter_dependencies_of_toplevel(package.name)
           version = version.strip
 
@@ -50,6 +58,14 @@ module LicenseFinder
       end
 
       toplevel_packages
+    end
+
+    def toplevel_dependencies
+      package = JSON.parse(File.read("#{project_path}/package.json"))
+      package['dependencies'].keys
+    rescue StandardError => e
+      puts "Get filter dependencies error => #{e.message}"
+      []
     end
 
     def filter_dependencies_of_toplevel(package)
