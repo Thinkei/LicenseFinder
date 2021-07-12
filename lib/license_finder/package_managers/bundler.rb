@@ -13,7 +13,9 @@ module LicenseFinder
 
     def current_packages
       logger.debug self.class, "including groups #{included_groups.inspect}"
-      details.map do |gem_detail, bundle_detail|
+      # only report toplevel dependencies
+      details.reject { |item| item.last.nil? }
+             .map do |gem_detail, bundle_detail|
         BundlerPackage.new(gem_detail, bundle_detail, logger: logger).tap do |package|
           log_package_dependencies package
         end
