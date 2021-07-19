@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative 'license_collector'
+require_relative 'google_spreadsheet_report'
+
+spreadsheet_id = ENV['LICENSE_REPORT_SPREADSHEET_ID'] || ''
+
+if spreadsheet_id.empty?
+  puts 'The LICENSE_REPORT_SPREADSHEET_ID can not be blank!'
+  return
+end
+
+if ENV['APP_ENV'] == 'development'
+  repository = ENV['PROJECT_REPONAME']
+  repo_path = ENV['SCAN_DIR'] + "/#{repository}"
+else
+  repository = ENV['CIRCLE_PROJECT_REPONAME']
+  repo_path = ENV['CIRCLE_WORKING_DIRECTORY']
+end
+
+lc = LicenseCollector.call(repo_path)
+worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
+
+GoogleSpreadsheetReport.call(repository, worksheet_records)
