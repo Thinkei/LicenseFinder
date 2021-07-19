@@ -8,7 +8,7 @@ module GoogleSpreadsheetReport
 
   def session
     @session ||= GoogleDrive::Session.from_config(
-      '/license-report/license-report-318315-c9bfb4c18d2f.json'
+      $working_directory + '/license-report-318315-c9bfb4c18d2f.json'
     )
   end
 
