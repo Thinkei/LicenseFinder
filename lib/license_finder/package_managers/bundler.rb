@@ -34,11 +34,13 @@ module LicenseFinder
         #logger.info self.class, "Running bundle install for #{Dir.pwd} with path #{gem_path}", color: :blue
 
         #"bundle install #{ignored_groups_argument} --path #{gem_path}".strip
-        "bundle install -j4 -r2 #{ignored_groups_argument}".strip
+        "bundle install --jobs 4 --retry 3 #{ignored_groups_argument}".strip
       else
-        Cmd.run("bundle config set --local without 'test development devDependencies')")
+        Dir.chdir(project_path) do
+          Cmd.run("bundle config set --local without 'test development devDependencies')")
+        end
 
-        "bundle install -j4 -r2".strip
+        "bundle install --jobs 4 --retry 3".strip
       end
     end
 
