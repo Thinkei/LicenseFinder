@@ -27,13 +27,19 @@ module LicenseFinder
     end
 
     def prepare_command
-      ignored_groups_argument = !ignored_groups.empty? ? "--without #{ignored_groups.to_a.join(' ')}" : ''
+      if Gem::Version.new(ENV['BUNDLER_VERSION']) < Gem::Version.new('2.1.0')
+        ignored_groups_argument = !ignored_groups.empty? ? "--without #{ignored_groups.to_a.join(' ')}" : ''
 
-      # gem_path = "/app/lf-bundler-gems"
-      #logger.info self.class, "Running bundle install for #{Dir.pwd} with path #{gem_path}", color: :blue
+        # gem_path = "/app/lf-bundler-gems"
+        #logger.info self.class, "Running bundle install for #{Dir.pwd} with path #{gem_path}", color: :blue
 
-      #"bundle install #{ignored_groups_argument} --path #{gem_path}".strip
-      "bundle install #{ignored_groups_argument}".strip
+        #"bundle install #{ignored_groups_argument} --path #{gem_path}".strip
+        "bundle install -j4 -r2 #{ignored_groups_argument}".strip
+      else
+        Cmd.run("bundle config set --local without 'test development devDependencies')")
+
+        "bundle install -j4 -r2".strip
+      end
     end
 
     def possible_package_paths
