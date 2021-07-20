@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
 require 'google_drive'
+require 'tempfile'
 require_relative 'sheet_configuration'
 
 module GoogleSpreadsheetReport
   module_function
 
   def session
-    @session ||= GoogleDrive::Session.from_config(
-      $working_directory + '/license-report-318315-c9bfb4c18d2f.json'
-    )
+    return @session if defined?(@session)
+    file = Tempfile.new
+    file.write(ENV['LICENSE_REPORT_GOOGLE_AUTH_SECRET'])
+    file.rewind
+
+    @session ||= GoogleDrive::Session.from_config(file.path)
   end
 
   def spreadsheet
