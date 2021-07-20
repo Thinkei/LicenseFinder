@@ -19,7 +19,12 @@ else
   $working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
 end
 
-lc = LicenseCollector.call($working_directory)
-worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
+begin
+  lc = LicenseCollector.call($working_directory)
+  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
 
-GoogleSpreadsheetReport.call($repo_name, worksheet_records)
+  GoogleSpreadsheetReport.call($repo_name, worksheet_records)
+rescue StandardError => e
+  puts e.message
+  return
+end
