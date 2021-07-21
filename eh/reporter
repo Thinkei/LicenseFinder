@@ -26,5 +26,21 @@ begin
   GoogleSpreadsheetReport.call($repo_name, worksheet_records)
 rescue StandardError => e
   puts e.message
+  require 'slack-notifier'
+
+  slack_message = {
+    "attachments": [
+      {
+        "color": '#FF4D46',
+        "title": "License reporting was failed with the repository #{$repo_name}",
+        "text": "#{ENV['CIRCLE_BUILD_URL']}|View details>"
+      }
+    ]
+  }
+
+  notifier = Slack::Notifier.new ENV['LICENSE_REPORT_SLACK_WEBHOOK_URL']
+  notifier.ping slack_message
+ensure
+  puts 'We always return a green status in avoiding the noise'
   return
 end
