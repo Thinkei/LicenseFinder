@@ -32,8 +32,8 @@ rescue StandardError => e
     "attachments": [
       {
         "color": '#FF4D46',
-        "title": "License reporting was failed with the repository #{$repo_name}",
-        "text": "#{ENV['CIRCLE_BUILD_URL']}|View details>"
+        "title": "License reporting was failed",
+        "text": "Repository #{$repo_name} • <#{ENV['CIRCLE_BUILD_URL']}|View details>"
       }
     ]
   }

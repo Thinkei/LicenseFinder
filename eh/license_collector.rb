@@ -10,7 +10,7 @@ module LicenseCollector
 
   def configuration(project_path)
     LicenseFinder::Configuration.with_optional_saved_config(
-      logger: :debug,
+      logger: :quite,
       project_path: project_path
     )
   end
