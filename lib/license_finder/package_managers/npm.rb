@@ -23,7 +23,7 @@ module LicenseFinder
       Dir.chdir(project_path) do
         packages.each do |p|
           out, _err, _status = Open3.capture3("npm view --json #{p.name}@#{p.version} dependencies")
-          package.children = JSON.parse(out).keys
+          p.children = JSON.parse(out).keys
         end
       end
       packages
