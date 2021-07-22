@@ -33,7 +33,7 @@ end
 class WorksheetReport < LicenseFinder::CsvReport
   def to_s(include_dependencies: false)
     if include_dependencies
-      licence_records = [@columns + 'dependencies']
+      licence_records = [@columns << 'dependencies']
     else
       licence_records = [@columns]
     end
