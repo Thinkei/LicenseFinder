@@ -39,17 +39,12 @@ class WorksheetReport < LicenseFinder::CsvReport
     end
 
     sorted_dependencies.each do |s|
-      licence_records << reformat_dependency(s, include_dependencies: include_dependencies)
+      licence_records << format_dependency(s)
     end
     licence_records
   end
 
-  def reformat_dependency(dependency, include_dependencies: false)
-    data = format_dependency(dependency)
-
-    if include_dependencies
-      data << dependency.children&.map(&:name)&.join(', ')
-    end
-    data
+  def format_dependencies(dep)
+    dep.children&.map(&:name)&.split(', ')
   end
 end
