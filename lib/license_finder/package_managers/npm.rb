@@ -44,7 +44,7 @@ module LicenseFinder
 
       Dir.chdir(project_path) do
         package['dependencies'].keys.each do |package|
-          out, _err, _status = Open3.capture3('npm view "#{package}" version')
+          out, _err, _status = Open3.capture3("npm view '#{package}' version")
 
           hash[package] = out.strip
         end

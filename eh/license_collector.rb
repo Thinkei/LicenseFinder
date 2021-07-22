@@ -45,6 +45,6 @@ class WorksheetReport < LicenseFinder::CsvReport
   end
 
   def format_dependencies(dep)
-    dep.children&.split(', ')
+    dep.children&.join(', ')
   end
 end
