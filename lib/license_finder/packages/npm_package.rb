@@ -5,7 +5,7 @@ module LicenseFinder
     attr_accessor :identifier, :dependencies, :groups, :json
 
     class << self
-      def packages_from_json(npm_json, package_path, toplevel_dependencies)
+      def packages_from_json(npm_json, package_path)
         @packages = flattened_dependencies(npm_json)
         package_json = PackageJson.new(package_path)
         populate_groups(package_json)
@@ -13,9 +13,7 @@ module LicenseFinder
           (package.name.empty? &&
             package.version.empty? &&
             package.licenses.length == 1 &&
-            package.licenses.first.name == 'unknown') ||
-            !toplevel_dependencies.keys.include?(identifier.name) ||
-            (toplevel_dependencies.keys.include?(identifier.name) && toplevel_dependencies[identifier.name] != identifier.version)
+            package.licenses.first.name == 'unknown')
         end
         @packages.values
       end
@@ -93,6 +91,10 @@ module LicenseFinder
 
     def package_url
       "https://www.npmjs.com/package/#{CGI.escape(name)}/v/#{CGI.escape(version)}"
+    end
+
+    def children=(children)
+      @children = children
     end
 
     private
