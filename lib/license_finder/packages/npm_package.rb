@@ -5,15 +5,15 @@ module LicenseFinder
     attr_accessor :identifier, :dependencies, :groups, :json
 
     class << self
-      def packages_from_json(npm_json, package_path)
+      def packages_from_json(npm_json, package_path, toplevel_dependencies)
         @packages = flattened_dependencies(npm_json)
         package_json = PackageJson.new(package_path)
         populate_groups(package_json)
         @packages.reject! do |_identifier, package|
-          package.name.empty? &&
+          (package.name.empty? &&
             package.version.empty? &&
             package.licenses.length == 1 &&
-            package.licenses.first.name == 'unknown'
+            package.licenses.first.name == 'unknown') || !toplevel_dependencies.include?(package.name)
         end
         @packages.values
       end

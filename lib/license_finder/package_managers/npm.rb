@@ -11,7 +11,7 @@ module LicenseFinder
     end
 
     def current_packages
-      NpmPackage.packages_from_json(npm_json, detected_package_path)
+      NpmPackage.packages_from_json(npm_json, detected_package_path, toplevel_dependencies)
     end
 
     def package_management_command
@@ -37,6 +37,14 @@ module LicenseFinder
     end
 
     private
+
+    def toplevel_dependencies
+      package = JSON.parse(File.read("#{project_path}/package.json"))
+      package['dependencies'].keys
+    rescue StandardError => e
+      puts "Get filter dependencies error => #{e.message}"
+      []
+    end
 
     def npm_json
       command = "#{package_management_command} list --json --long#{production_flag}"
