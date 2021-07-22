@@ -40,10 +40,20 @@ module LicenseFinder
 
     def toplevel_dependencies
       package = JSON.parse(File.read("#{project_path}/package.json"))
-      package['dependencies'].keys
+      hash = {}
+
+      Dir.chdir(project_path) do
+        package['dependencies'].keys.each do |package|
+          out, _err, _status = Open3.capture3('npm view "#{package}" version')
+
+          hash[package] = out.strip
+        end
+      end
+
+      hash
     rescue StandardError => e
       puts "Get filter dependencies error => #{e.message}"
-      []
+      {}
     end
 
     def npm_json
