@@ -48,7 +48,7 @@ class WorksheetReport < LicenseFinder::CsvReport
     data = format_dependency(dependency)
 
     if include_dependencies
-      data << dependency.children&.map(&:name).join(', ')
+      data << dependency.children&.map(&:name)&.join(', ')
     end
     data
   end
