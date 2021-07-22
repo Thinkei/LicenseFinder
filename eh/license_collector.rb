@@ -31,7 +31,9 @@ module LicenseCollector
 end
 
 class WorksheetReport < LicenseFinder::CsvReport
-  def to_s(include_dependencies: false)
+  def to_s
+    include_dependencies = ENV['LICENSE_REPORT_INCLUDE_DEPENDENCIES'] == 'true'
+
     if include_dependencies
       licence_records = [@columns << 'dependencies']
     else

@@ -10,15 +10,14 @@ if spreadsheet_id.empty?
   puts 'The LICENSE_REPORT_SPREADSHEET_ID can not be blank!'
   return
 end
-$repo_name = ENV['CIRCLE_PROJECT_REPONAME']
-$working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
+repo_name = ENV['CIRCLE_PROJECT_REPONAME']
+working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
 
 begin
-  lc = LicenseCollector.call($working_directory)
-  include_dependencies = ENV['LICENSE_REPORT_INCLUDE_DEPENDENCIES'] == 'true'
-  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s(include_dependencies: include_dependencies)
+  lc = LicenseCollector.call(working_directory)
+  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
 
-  GoogleSpreadsheetReport.call($repo_name, worksheet_records)
+  GoogleSpreadsheetReport.call(repo_name, worksheet_records)
 rescue StandardError => e
   puts e.message
   require 'slack-notifier'
@@ -27,8 +26,8 @@ rescue StandardError => e
     "attachments": [
       {
         "color": '#FF4D46',
-        "title": "License reporting was failed",
-        "text": "Repository #{$repo_name} • <#{ENV['CIRCLE_BUILD_URL']}|View details>"
+        "title": 'License reporting was failed',
+        "text": "Repository #{repo_name} • <#{ENV['CIRCLE_BUILD_URL']}|View details>"
       }
     ]
   }
@@ -37,5 +36,4 @@ rescue StandardError => e
   notifier.ping slack_message
 ensure
   puts 'We always return a green status in avoiding the noise'
-  return
 end
