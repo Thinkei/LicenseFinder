@@ -31,11 +31,25 @@ module LicenseCollector
 end
 
 class WorksheetReport < LicenseFinder::CsvReport
-  def to_s
-    licence_records = [@columns]
+  def to_s(include_dependencies: false)
+    if include_dependencies
+      licence_records = [@columns + 'dependencies']
+    else
+      licence_records = [@columns]
+    end
+
     sorted_dependencies.each do |s|
-      licence_records << format_dependency(s)
+      licence_records << reformat_dependency(s, include_dependencies: include_dependencies)
     end
     licence_records
+  end
+
+  def reformat_dependency(dependency, include_dependencies: false)
+    data = format_dependency(dependency)
+
+    if include_dependencies
+      data << dependency.children&.map(&:name).join(', ')
+    end
+    data
   end
 end

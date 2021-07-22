@@ -10,18 +10,13 @@ if spreadsheet_id.empty?
   puts 'The LICENSE_REPORT_SPREADSHEET_ID can not be blank!'
   return
 end
-
-if ENV['APP_ENV'] == 'development'
-  $repo_name = ENV['PROJECT_REPONAME']
-  $working_directory = ENV['SCAN_DIR'] + "/#{repository}"
-else
-  $repo_name = ENV['CIRCLE_PROJECT_REPONAME']
-  $working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
-end
+$repo_name = ENV['CIRCLE_PROJECT_REPONAME']
+$working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
 
 begin
   lc = LicenseCollector.call($working_directory)
-  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
+  include_dependencies = ENV['LICENSE_REPORT_INCLUDE_DEPENDENCIES'] == 'true'
+  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s(include_dependencies: include_dependencies)
 
   GoogleSpreadsheetReport.call($repo_name, worksheet_records)
 rescue StandardError => e
