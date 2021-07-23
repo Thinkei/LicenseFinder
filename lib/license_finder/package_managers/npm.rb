@@ -55,12 +55,13 @@ module LicenseFinder
 
     def toplevel_packages
       return @toplevel_packages if defined?(@toplevel_packages)
-      package = JSON.parse(File.read("#{project_path}/package.json"))
+
+      package_json_content = JSON.parse(File.read("#{project_path}/package.json"))
       @toplevel_packages = {}
 
       Dir.chdir(project_path) do
-        package['dependencies'].keys.each do |package|
-          out, _err, _status = Open3.capture3("npm view '#{package}' version")
+        package_json_content['dependencies'].each_key do |package|
+          out, _err, _status = Cmd.run("npm view '#{package}' version")
 
           @toplevel_packages[package] = out.strip
         end
@@ -69,7 +70,7 @@ module LicenseFinder
       @toplevel_packages
     rescue StandardError => e
       puts "Get filter dependencies error => #{e.message}"
-      {}
+      raise e
     end
 
     def npm_json

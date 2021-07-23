@@ -35,42 +35,44 @@ module LicenseFinder
         end
       end
 
-      valid_packages = []
+      packages += incompatible_packages.uniq
 
-      (packages + incompatible_packages.uniq).each do |package|
-        next unless toplevel_dependencies.include?(package.name)
-
-        valid_packages << package
+      # filter toplevel package
+      packages.select! do |package|
+        toplevel_packages[package.name] == package.version
       end
 
-      toplevel_packages = []
-
+      # update children
       Dir.chdir(project_path) do
-        valid_packages.each do |package|
-          version, _stderr, _status = filter_dependencies_of_toplevel(package.name)
-          version = version.strip
-
-          next if version.empty?
-          next if version != package.version
-
-          toplevel_packages << package
+        packages.each do |package|
+          out, _stderr, _status = Cmd.run("yarn info --json #{package.name}@#{package.version} | jq '.data' | jq '.dependencies'")
+          package.children = JSON.parse(out).keys unless out.empty?
         end
       end
 
-      toplevel_packages
+      packages
     end
 
-    def toplevel_dependencies
-      package = JSON.parse(File.read("#{project_path}/package.json"))
-      package['dependencies'].keys
+    def toplevel_packages
+      return @toplevel_packages if defined?(@toplevel_packages)
+
+      package_json_content = JSON.parse(File.read("#{project_path}/package.json"))
+      @toplevel_packages = {}
+
+      Dir.chdir(project_path) do
+        package_json_content['dependencies'].each_key do |package|
+          out, _err, _status = Cmd.run(
+            "yarn list -s --depth=0 --pattern '#{package}' | tail -n 1 | sed 's/.*@//g'"
+          )
+
+          @toplevel_packages[package] = out.strip
+        end
+      end
+
+      @toplevel_packages
     rescue StandardError => e
       puts "Get filter dependencies error => #{e.message}"
-      []
-    end
-
-    def filter_dependencies_of_toplevel(package)
-      cmd = "yarn list -s --depth=0 --pattern '#{package}' | tail -n 1 | sed 's/.*@//g'"
-      Cmd.run(cmd)
+      raise e
     end
 
     def prepare

@@ -2,6 +2,8 @@
 
 module LicenseFinder
   class YarnPackage < Package
+    attr_writer :children
+
     def package_manager
       'Yarn'
     end

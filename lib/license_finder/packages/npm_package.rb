@@ -3,6 +3,7 @@
 module LicenseFinder
   class NpmPackage < Package
     attr_accessor :identifier, :dependencies, :groups, :json
+    attr_writer :children
 
     class << self
       def packages_from_json(npm_json, package_path)
@@ -91,10 +92,6 @@ module LicenseFinder
 
     def package_url
       "https://www.npmjs.com/package/#{CGI.escape(name)}/v/#{CGI.escape(version)}"
-    end
-
-    def children=(children)
-      @children = children
     end
 
     private
