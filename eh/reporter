@@ -19,7 +19,7 @@ begin
 
   GoogleSpreadsheetReport.call(repo_name, worksheet_records)
 rescue StandardError => e
-  puts e.message
+  puts e.backtrace
   require 'slack-notifier'
 
   slack_message = {
