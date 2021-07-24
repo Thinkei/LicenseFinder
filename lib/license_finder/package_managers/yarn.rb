@@ -46,7 +46,12 @@ module LicenseFinder
       Dir.chdir(project_path) do
         packages.each do |package|
           out, _stderr, _status = Cmd.run("yarn info --json #{package.name}@#{package.version} | jq '.data' | jq '.dependencies'")
-          package.children = JSON.parse(out).keys unless out.empty?
+          next if out.empty?
+
+          children = JSON.parse(out)&.keys
+          next if children.nil? || children.empty?
+
+          package.children = children
         end
       end
 
