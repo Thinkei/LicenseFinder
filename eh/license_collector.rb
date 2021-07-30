@@ -25,8 +25,6 @@ module LicenseCollector
 
     lf.prepare_projects
     lf
-  rescue StandardError => e
-    puts "Reporting license was failed - #{e.message}"
   end
 end
 

@@ -9,6 +9,7 @@ module GoogleSpreadsheetReport
 
   def session
     return @session if defined?(@session)
+
     file = Tempfile.new
     file.write(ENV['LICENSE_REPORT_GOOGLE_AUTH_SECRET'])
     file.rewind
@@ -48,7 +49,5 @@ module GoogleSpreadsheetReport
     worksheet.insert_rows(worksheet.num_rows + 1, license_records)
     worksheet.add_request(SheetConfiguration.format_header_row(worksheet.sheet_id))
     worksheet.synchronize
-  rescue StandardError => e
-    puts "Updating license to google spreadsheet was failed of #{repo_name} - #{e.message}"
   end
 end
