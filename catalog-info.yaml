@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: licensefinder
+  tags:
+    - external
+    - fork
+    - public
+    - ruby
+  annotations:
+    github.com/project-slug: Thinkei/licensefinder
+spec:
+  type: service
+  system: core-technology
+  lifecycle: production
