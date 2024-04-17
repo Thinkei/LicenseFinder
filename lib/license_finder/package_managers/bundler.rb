@@ -13,7 +13,9 @@ module LicenseFinder
 
     def current_packages
       logger.debug self.class, "including groups #{included_groups.inspect}"
-      details.map do |gem_detail, bundle_detail|
+      # only report toplevel dependencies
+      details.reject { |item| item.last.nil? }
+             .map do |gem_detail, bundle_detail|
         BundlerPackage.new(gem_detail, bundle_detail, logger: logger).tap do |package|
           log_package_dependencies package
         end
@@ -25,12 +27,21 @@ module LicenseFinder
     end
 
     def prepare_command
-      ignored_groups_argument = !ignored_groups.empty? ? "--without #{ignored_groups.to_a.join(' ')}" : ''
+      if Gem::Version.new(ENV['BUNDLER_VERSION']) < Gem::Version.new('2.1.0')
+        ignored_groups_argument = !ignored_groups.empty? ? "--without #{ignored_groups.to_a.join(' ')}" : ''
 
-      gem_path = "lf-bundler-gems-#{SecureRandom.uuid}"
-      logger.info self.class, "Running bundle install for #{Dir.pwd} with path #{gem_path}", color: :blue
+        # gem_path = "/app/lf-bundler-gems"
+        #logger.info self.class, "Running bundle install for #{Dir.pwd} with path #{gem_path}", color: :blue
 
-      "bundle install #{ignored_groups_argument} --path #{gem_path}".strip
+        #"bundle install #{ignored_groups_argument} --path #{gem_path}".strip
+        "bundle install #{ignored_groups_argument}".strip
+      else
+        Dir.chdir(project_path) do
+          Cmd.run("bundle config set --local without 'test development devDependencies')")
+        end
+
+        "bundle install --deployment".strip
+      end
     end
 
     def possible_package_paths

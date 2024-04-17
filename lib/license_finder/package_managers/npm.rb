@@ -11,7 +11,22 @@ module LicenseFinder
     end
 
     def current_packages
-      NpmPackage.packages_from_json(npm_json, detected_package_path)
+      packages = NpmPackage.packages_from_json(npm_json, detected_package_path)
+
+      # filter toplevel package
+      packages.reject! do |p|
+        !toplevel_packages.keys.include?(p.name) ||
+          (toplevel_packages.keys.include?(p.name) && toplevel_packages[p.name] != p.version)
+      end
+
+      # reupdate dependencies
+      Dir.chdir(project_path) do
+        packages.each do |p|
+          out, _err, _status = Open3.capture3("npm view --json #{p.name}@#{p.version} dependencies")
+          p.children = JSON.parse(out).keys unless out.empty?
+        end
+      end
+      packages
     end
 
     def package_management_command
@@ -37,6 +52,26 @@ module LicenseFinder
     end
 
     private
+
+    def toplevel_packages
+      return @toplevel_packages if defined?(@toplevel_packages)
+
+      package_json_content = JSON.parse(File.read("#{project_path}/package.json"))
+      @toplevel_packages = {}
+
+      Dir.chdir(project_path) do
+        package_json_content['dependencies'].each_key do |package|
+          out, _err, _status = Cmd.run("npm view '#{package}' version")
+
+          @toplevel_packages[package] = out.strip
+        end
+      end
+
+      @toplevel_packages
+    rescue StandardError => e
+      puts "Get filter dependencies error => #{e.message}"
+      raise e
+    end
 
     def npm_json
       command = "#{package_management_command} list --json --long#{production_flag}"

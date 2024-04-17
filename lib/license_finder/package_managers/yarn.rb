@@ -35,7 +35,49 @@ module LicenseFinder
         end
       end
 
-      packages + incompatible_packages.uniq
+      packages += incompatible_packages.uniq
+
+      # filter toplevel package
+      packages.select! do |package|
+        toplevel_packages[package.name] == package.version
+      end
+
+      # update children
+      Dir.chdir(project_path) do
+        packages.each do |package|
+          out, _stderr, _status = Cmd.run("yarn info --json #{package.name}@#{package.version} | jq '.data' | jq '.dependencies'")
+          next if out.empty?
+
+          children = JSON.parse(out)&.keys
+          next if children.nil? || children.empty?
+
+          package.children = children
+        end
+      end
+
+      packages
+    end
+
+    def toplevel_packages
+      return @toplevel_packages if defined?(@toplevel_packages)
+
+      package_json_content = JSON.parse(File.read("#{project_path}/package.json"))
+      @toplevel_packages = {}
+
+      Dir.chdir(project_path) do
+        package_json_content['dependencies'].each_key do |package|
+          out, _err, _status = Cmd.run(
+            "yarn list -s --depth=0 --pattern '#{package}' | tail -n 1 | sed 's/.*@//g'"
+          )
+
+          @toplevel_packages[package] = out.strip
+        end
+      end
+
+      @toplevel_packages
+    rescue StandardError => e
+      puts "Get filter dependencies error => #{e.message}"
+      raise e
     end
 
     def prepare

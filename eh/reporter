@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative 'license_collector'
+require_relative 'google_spreadsheet_report'
+
+spreadsheet_id = ENV['LICENSE_REPORT_SPREADSHEET_ID'] || ''
+
+if spreadsheet_id.empty?
+  puts 'The LICENSE_REPORT_SPREADSHEET_ID can not be blank!'
+  return
+end
+repo_name = ENV['CIRCLE_PROJECT_REPONAME']
+working_directory = ENV['CIRCLE_WORKING_DIRECTORY']
+
+begin
+  lc = LicenseCollector.call(working_directory)
+  worksheet_records = WorksheetReport.new(lc.acknowledged, {}).to_s
+
+  GoogleSpreadsheetReport.call(repo_name, worksheet_records)
+rescue StandardError => e
+  puts e.message
+  puts e.backtrace
+  require 'slack-notifier'
+
+  slack_message = {
+    "attachments": [
+      {
+        "color": '#FF4D46',
+        "title": 'License reporting was failed',
+        "text": "Repository #{repo_name} • <#{ENV['CIRCLE_BUILD_URL']}|View details>"
+      }
+    ]
+  }
+
+  notifier = Slack::Notifier.new ENV['LICENSE_REPORT_SLACK_WEBHOOK_URL']
+  notifier.ping slack_message
+ensure
+  puts 'We always return a green status in avoiding the noise'
+end
